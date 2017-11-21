@@ -7,12 +7,21 @@ class Comment extends Component {
         let childComments = [];
         let comments = JSON.parse(window.localStorage.getItem('comment' + this.props.id));
         if (comments) {
-            for (let i = 0; i < comments.length; i++) {
+            let len = comments.length;
+            for (let i = 0; i < len; i++) {
+                if (comments[i].deleted === true) {
+                    comments.splice(i, 1);
+                    len--;
+                    i--;
+                    continue;
+                }
                 childComments.push(<Comment id={comments[i].id} parentId={this.props.id} key={comments[i].key}
-                                            indexInParent={i} comment={comments[i].comment}
-                                            likes={comments[i].likes} dislikes = {comments[i].dislikes} createdAt={comments[i].createdAt}/>);
+                                            indexInParent={i} comment={comments[i].comment} deleted={false}
+                                            likes={comments[i].likes} dislikes = {comments[i].dislikes}
+                                            createdAt={comments[i].createdAt}/>);
                 setUniqueId(Math.max(getId(), comments[i].id));
             }
+            window.localStorage.setItem('comment' + this.props.id, JSON.stringify(comments));
         }
         this.state = {
             id: this.props.id,
@@ -41,7 +50,7 @@ class Comment extends Component {
         let time = new Date();
         this.setState({
             child: [...this.state.child, <Comment id={uid} indexInParent={key} parentId={this.props.id} key={key} likes={0} dislikes={0}
-                                                  createdAt={time} comment={this.state.reply}/>]
+                                                  createdAt={time} comment={this.state.reply} deleted={false}/>]
         });
         let data = {id: uid, parentId:this.props.id, likes: 0, dislikes: 0, key: key, createdAt: time, comment: this.state.reply};
         let saved = JSON.parse(window.localStorage.getItem('comment'+this.state.id));
@@ -87,8 +96,7 @@ class Comment extends Component {
         this.setState({deleted: true});
         let parentComment = JSON.parse(window.localStorage.getItem('comment' + this.props.parentId));
         let indexInParent = this.props.indexInParent;
-        parentComment.splice(indexInParent, 1);
-        console.log(parentComment);
+        parentComment[indexInParent].deleted = true;
         window.localStorage.setItem('comment'+this.props.parentId, JSON.stringify(parentComment));
         this.deleteDfs(this.state.id);
     }
@@ -102,7 +110,15 @@ class Comment extends Component {
         window.localStorage.removeItem('comment' + id);
     }
     render () {
-        return !this.state.deleted ? (<div className="margin-left">
+        return this.props.isRootComment ? <div>
+            <input onChange={this.setReply} className="main-input"/>
+            <button onClick={this.reply}>Comment</button>
+            <div>
+                {this.state.child.map(function (comment){
+                    return comment;
+                })}
+            </div>
+        </div> : !this.state.deleted ? (<div className="margin-left">
             {this.state.edit ? <div>
                 <input defaultValue={this.state.comment} onChange={this.setComment}/>
                 <button onClick={this.updateComment}>Update</button>
