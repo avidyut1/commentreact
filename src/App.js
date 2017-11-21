@@ -13,7 +13,7 @@ class App extends Component {
     let comments = JSON.parse(window.localStorage.getItem('comment0'));
     if (comments) {
         for (let i = 0; i < comments.length; i++) {
-            childComments.push(<Comment id={comments[i].id} parentId={0} indexInParent={comments[i].indexInParent} key={comments[i].key}
+            childComments.push(<Comment id={comments[i].id} parentId={0} indexInParent={i} key={comments[i].key}
                                         likes={comments[i].likes} dislikes = {comments[i].dislikes} createdAt={comments[i].createdAt}
                                         comment={comments[i].comment}/>);
             setUniqueId(Math.max(getId(), comments[i].id));
@@ -31,11 +31,11 @@ class App extends Component {
       let uid = getUniqueId();
       let time = new Date();
       this.setState({
-          child: [...this.state.child, <Comment id={uid} parentId={0} indexInParent={key - 1} key={key} likes={0} dislikes={0}
+          child: [...this.state.child, <Comment id={uid} indexInParent={key} parentId={0} key={key} likes={0} dislikes={0}
                                                 createdAt={time} comment={this.state.comment}/>]
       });
       this.refs.commentRef.value = '';
-      let data = {id: uid, parentId:0, indexInParent: key - 1, likes: 0, dislikes: 0, key: key, createdAt: time, comment: this.state.comment};
+      let data = {id: uid, parentId:0, likes: 0, dislikes: 0, key: key, createdAt: time, comment: this.state.comment};
       let saved = JSON.parse(window.localStorage.getItem('comment0'));
       if (saved) {
           saved.push(data);
